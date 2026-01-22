@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>"name" Car Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    #title {
+      background: linear-gradient(45deg, #0f3460, #533483);
+      font-size: 32px;
+      margin: 0;
+      padding: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    #score, #speed {
+      position: absolute;
+      top: 70px;
+      font-size: 16px;
+      background: rgba(0,0,0,0.7);
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      z-index: 10;
+    }
+
+    #score { left: 10px; color: #4ecca3; }
+    #speed { right: 10px; color: #ffa502; }
+
+    #game {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(to bottom, #2d3436 0%, #636e72 100%);
+      overflow: hidden;
+      border-top: 3px solid #ffd700;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .lane {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: repeating-linear-gradient(
+        to bottom,
+        white 0px,
+        white 30px,
+        transparent 30px,
+        transparent 60px
+      );
+      animation: moveLanes 1s linear infinite;
+    }
+
+    @keyframes moveLanes {
+      from { background-position: 0 0; }
+      to { background-position: 0 60px; }
+    }
+
+    #car, .enemy {
+      position: absolute;
+      width: 50px;
+      height: 70px;
+      z-index: 5;
+    }
+
+    #car {
+      bottom: 80px;
+    }
+
+    #controls {
+      display: none;
+    }
+
+    .control-row {
+      display: none;
+    }
+
+    button {
+      display: none;
+    }
+
+    .arrow-btn {
+      display: none;
+    }
+
+    .speed-btn {
+      display: none;
+    }
+
+    #restart {
+      display: none;
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: #333;
+      font-size: 20px;
+      padding: 15px 35px;
+      animation: pulse 1.5s infinite;
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 101;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    #gameOver {
+      display: none;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9);
+      padding: 25px 40px;
+      border-radius: 15px;
+      z-index: 100;
+      border: 3px solid #e74c3c;
+    }
+
+    #gameOver h2 {
+      color: #e74c3c;
+      font-size: 32px;
+      margin: 0 0 10px 0;
+    }
+
+    #splashScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: fadeInOut 2s ease-in-out forwards;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    #splashContent {
+      text-align: center;
+      padding: 40px 60px;
+      border: 5px solid transparent;
+      border-radius: 20px;
+      background: linear-gradient(#000, #000) padding-box,
+                  linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080) border-box;
+      animation: borderGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes borderGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.5); }
+    }
+
+    #splashMessage {
+      font-size: 42px;
+      font-weight: bold;
+      background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 2s ease infinite;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @media (max-width: 600px) {
+      #title {
+        font-size: 24px;
+        padding: 12px;
+      }
+      
+      #score, #speed {
+        font-size: 14px;
+        padding: 6px 12px;
+        top: 60px;
+      }
+      
+      #gameOver h2 {
+        font-size: 28px;
+      }
+      
+      #gameOver {
+        padding: 20px 30px;
+      }
+
+      #splashContent {
+        padding: 30px 40px;
+      }
+
+      #splashMessage {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="splashScreen">
+    <div id="splashContent">
+      <div id="splashMessage">GET READY TO RACE!</div>
+    </div>
+  </div>
+
+  <div id="title">🏎️ KunKun's Racing Game 🏁</div>
+  <div id="score">Score: 0</div>
+  <div id="speed">Speed: 10</div>
+
+  <div id="game">
+    <div id="gameOver">
+      <h2>GAME OVER!</h2>
+      <p id="finalScore" style="font-size: 24px;"></p>
+    </div>
+  </div>
+
+  <div id="controls"></div>
+
+  <button id="restart" onclick="restartGame()">🔄 Play Again</button>
+
+<script>
+  // ========== CUSTOMIZE YOUR GAME HERE ==========
+  const GAME_CREATOR = "Name";  // PUT YOUR NAME HERE!
+  const INTRO_MESSAGE = "This game is developed by Name;  // YOUR CUSTOM INTRO MESSAGE!
+  // ==============================================
+
+  const lanes = 5;
+  const game = document.getElementById("game");
+  const laneWidth = () => game.clientWidth / lanes;
+
+  let carLane = Math.floor(lanes / 2);
+  let speed = 10;
+  let score = 0;
+  let running = true;
+  let enemies = [];
+  let lastSpeedIncrease = 0;
+
+  // SVG Car Designs
+  function createPlayerCar() {
+    const svg = `
+      <svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
+        <!-- Shadow -->
+        <ellipse cx="25" cy="68" rx="22" ry="4" fill="rgba(0,0,0,0.3)"/>
+        
+        <!-- Rear section -->
+        <path d="M 10 10 L 40 10 L 38 20 L 12 20 Z" fill="#1a1a1a"/>
+        
+        <!-- Main body - sleek sports car shape -->
+        <path d="M 8 20 L 42 20 L 45 35 L 45 55 L 42 65 L 8 65 L 5 55 L 5 35 Z" fill="#FFD700" stroke="#FFA500" stroke-width="1"/>
+        
+        <!-- Side accent stripe -->
+        <path d="M 10 40 L 40 40 L 42 48 L 8 48 Z" fill="#FF6B00" opacity="0.6"/>
+        
+        <!-- Windshield - dark and angular -->
+        <path d="M 12 22 L 38 22 L 36 32 L 14 32 Z" fill="#1a1a2e" stroke="#000" stroke-width="0.5"/>
+        
+        <!-- Side windows -->
+        <ellipse cx="15" cy="38" rx="4" ry="6" fill="#2a2a3e" opacity="0.8"/>
+        <ellipse cx="35" cy="38" rx="4" ry="6" fill="#2a2a3e" opacity="0.8"/>
+        
+        <!-- Rear wheels -->
+        <circle cx="13" cy="18" r="7" fill="#000"/>
+        <circle cx="37" cy="18" r="7" fill="#000"/>
+        <circle cx="13" cy="18" r="4" fill="#C0C0C0"/>
+        <circle cx="37" cy="18" r="4" fill="#C0C0C0"/>
+        <circle cx="13" cy="18" r="2" fill="#FFD700"/>
+        <circle cx="37" cy="18" r="2" fill="#FFD700"/>
+        
+        <!-- Front wheels -->
+        <circle cx="13" cy="60" r="7" fill="#000"/>
+        <circle cx="37" cy="60" r="7" fill="#000"/>
+        <circle cx="13" cy="60" r="4" fill="#C0C0C0"/>
+        <circle cx="37" cy="60" r="4" fill="#C0C0C0"/>
+        <circle cx="13" cy="60" r="2" fill="#FFD700"/>
+        <circle cx="37" cy="60" r="2" fill="#FFD700"/>
+        
+        <!-- Front lights - aggressive LED style -->
+        <path d="M 8 64 L 15 64 L 13 67 L 10 67 Z" fill="#00FFFF" opacity="0.9"/>
+        <path d="M 35 64 L 42 64 L 40 67 L 37 67 Z" fill="#00FFFF" opacity="0.9"/>
+        
+        <!-- Rear lights -->
+        <rect x="10" y="12" width="5" height="3" fill="#FF0000" rx="1"/>
+        <rect x="35" y="12" width="5" height="3" fill="#FF0000" rx="1"/>
+        
+        <!-- Hood vents - supercar detail -->
+        <rect x="15" y="50" width="2" height="8" fill="#1a1a1a" rx="1"/>
+        <rect x="20" y="50" width="2" height="8" fill="#1a1a1a" rx="1"/>
+        <rect x="28" y="50" width="2" height="8" fill="#1a1a1a" rx="1"/>
+        <rect x="33" y="50" width="2" height="8" fill="#1a1a1a" rx="1"/>
+        
+        <!-- Spoiler -->
+        <rect x="8" y="8" width="34" height="3" fill="#1a1a1a" rx="1"/>
+        <rect x="10" y="6" width="30" height="2" fill="#FFD700"/>
+        
+        <!-- Side mirrors -->
+        <ellipse cx="6" cy="35" rx="2" ry="3" fill="#1a1a1a"/>
+        <ellipse cx="44" cy="35" rx="2" ry="3" fill="#1a1a1a"/>
+      </svg>
+    `;
+    return svg;
+  }
+
+  function createEnemyCar(color) {
+    const colors = {
+      red: { body: '#e74c3c', dark: '#c0392b', light: '#ec7063' },
+      green: { body: '#27ae60', dark: '#229954', light: '#52be80' },
+      purple: { body: '#8e44ad', dark: '#6c3483', light: '#a569bd' },
+      orange: { body: '#e67e22', dark: '#d35400', light: '#f39c12' }
+    };
+    const c = colors[color] || colors.red;
+    
+    const svg = `
+      <svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
+        <!-- Car body -->
+        <rect x="5" y="7" width="40" height="48" fill="${c.body}" rx="5"/>
+        <!-- Windshield -->
+        <rect x="10" y="35" width="30" height="15" fill="${c.light}" rx="3"/>
+        <!-- Hood -->
+        <rect x="5" y="15" width="40" height="20" fill="${c.dark}"/>
+        <!-- Wheels -->
+        <ellipse cx="12" cy="7" rx="6" ry="7" fill="#2c3e50"/>
+        <ellipse cx="38" cy="7" rx="6" ry="7" fill="#2c3e50"/>
+        <ellipse cx="12" cy="55" rx="6" ry="7" fill="#2c3e50"/>
+        <ellipse cx="38" cy="55" rx="6" ry="7" fill="#2c3e50"/>
+        <!-- Wheel rims -->
+        <ellipse cx="12" cy="7" rx="3" ry="3.5" fill="#95a5a6"/>
+        <ellipse cx="38" cy="7" rx="3" ry="3.5" fill="#95a5a6"/>
+        <ellipse cx="12" cy="55" rx="3" ry="3.5" fill="#95a5a6"/>
+        <ellipse cx="38" cy="55" rx="3" ry="3.5" fill="#95a5a6"/>
+        <!-- Lights -->
+        <circle cx="15" cy="3" r="2.5" fill="#ecf0f1"/>
+        <circle cx="35" cy="3" r="2.5" fill="#ecf0f1"/>
+        <!-- Details -->
+        <rect x="20" y="25" width="10" height="2" fill="#34495e" rx="1"/>
+      </svg>
+    `;
+    return svg;
+  }
+
+  // Draw lanes
+  function drawLanes() {
+    const existing = game.querySelectorAll('.lane');
+    existing.forEach(l => l.remove());
+    
+    for (let i = 1; i < lanes; i++) {
+      let l = document.createElement("div");
+      l.className = "lane";
+      l.style.left = (i * laneWidth()) + "px";
+      game.appendChild(l);
+    }
+  }
+
+  // Player car
+  const car = document.createElement("div");
+  car.id = "car";
+  car.innerHTML = createPlayerCar();
+  
+  function updateCar() {
+    car.style.left = (carLane * laneWidth() + (laneWidth() - 50) / 2) + "px";
+  }
+
+  drawLanes();
+  game.appendChild(car);
+  updateCar();
+
+  // Update title and splash screen with creator name and message
+  document.getElementById("title").innerText = `🏎️ ${GAME_CREATOR}'s Racing Game 🏁`;
+  document.getElementById("splashMessage").innerText = INTRO_MESSAGE;
+
+  // Remove splash screen after 2 seconds
+  setTimeout(() => {
+    const splash = document.getElementById("splashScreen");
+    splash.style.display = "none";
+  }, 2000);
+
+  // Add creator credit
+  const credit = document.createElement("div");
+  credit.style.position = "absolute";
+  credit.style.bottom = "10px";
+  credit.style.right = "10px";
+  credit.style.fontSize = "12px";
+  credit.style.color = "rgba(255,255,255,0.6)";
+  credit.style.zIndex = "10";
+  credit.innerText = `Created by ${GAME_CREATOR}`;
+  game.appendChild(credit);
+
+  // Touch controls for mobile
+  let touchStartX = 0;
+  let touchCurrentX = 0;
+
+  game.addEventListener('touchstart', (e) => {
+    if (!running) return;
+    touchStartX = e.touches[0].clientX;
+    touchCurrentX = touchStartX;
+  });
+
+  game.addEventListener('touchmove', (e) => {
+    if (!running) return;
+    e.preventDefault();
+    touchCurrentX = e.touches[0].clientX;
+  });
+
+  game.addEventListener('touchend', (e) => {
+    if (!running) return;
+    const touchDiff = touchCurrentX - touchStartX;
+    
+    if (Math.abs(touchDiff) > 30) { // Minimum swipe distance
+      if (touchDiff < 0) {
+        moveLeft();
+      } else {
+        moveRight();
+      }
+    }
+  });
+
+  // Mouse controls for desktop
+  game.addEventListener('click', (e) => {
+    if (!running) return;
+    const clickX = e.clientX;
+    const gameCenter = game.offsetLeft + game.clientWidth / 2;
+    
+    if (clickX < gameCenter) {
+      moveLeft();
+    } else {
+      moveRight();
+    }
+  });
+
+  function moveLeft() {
+    if (!running) return;
+    if (carLane > 0) {
+      carLane--;
+      updateCar();
+    }
+  }
+
+  function moveRight() {
+    if (!running) return;
+    if (carLane < lanes - 1) {
+      carLane++;
+      updateCar();
+    }
+  }
+
+  function spawnEnemy() {
+    let lane = Math.floor(Math.random() * lanes);
+    let e = document.createElement("div");
+    e.className = "enemy";
+    
+    const carColors = ['red', 'green', 'purple', 'orange'];
+    const randomColor = carColors[Math.floor(Math.random() * carColors.length)];
+    e.innerHTML = createEnemyCar(randomColor);
+    
+    e.style.left = (lane * laneWidth() + (laneWidth() - 50) / 2) + "px";
+    e.style.top = "-70px";
+    game.appendChild(e);
+    enemies.push({ el: e, lane: lane, y: -70 });
+  }
+
+  function gameLoop() {
+    if (!running) return;
+
+    // Auto increase speed every 10 points
+    if (score - lastSpeedIncrease >= 10) {
+      speed += 2;
+      lastSpeedIncrease = score;
+      document.getElementById("speed").innerText = "Speed: " + speed;
+    }
+
+    if (Math.random() < 0.02 + (score * 0.0001)) spawnEnemy();
+
+    enemies.forEach((e, i) => {
+      e.y += speed / 2;
+      e.el.style.top = e.y + "px";
+
+      // Collision detection
+      const carBottom = game.clientHeight - 140;
+      const carTop = game.clientHeight - 70;
+      if (e.lane === carLane && e.y + 70 > carBottom && e.y < carTop) {
+        gameOver();
+      }
+
+      // Passed
+      if (e.y > game.clientHeight) {
+        game.removeChild(e.el);
+        enemies.splice(i, 1);
+        score++;
+        document.getElementById("score").innerText = "Score: " + score;
+      }
+    });
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  function gameOver() {
+    running = false;
+    document.getElementById("gameOver").style.display = "block";
+    document.getElementById("finalScore").innerText = `${GAME_CREATOR}'s Final Score: ${score}`;
+    document.getElementById("restart").style.display = "block";
+  }
+
+  function restartGame() {
+    running = true;
+    enemies.forEach(e => game.removeChild(e.el));
+    enemies = [];
+    score = 0;
+    speed = 10;
+    lastSpeedIncrease = 0;
+    carLane = Math.floor(lanes / 2);
+    updateCar();
+    document.getElementById("score").innerText = "Score: 0";
+    document.getElementById("speed").innerText = "Speed: 10";
+    document.getElementById("gameOver").style.display = "none";
+    document.getElementById("restart").style.display = "none";
+    gameLoop();
+  }
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    drawLanes();
+    updateCar();
+  });
+
+  gameLoop();
+</script>
+
+</body>
+</html>
