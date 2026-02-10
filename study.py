@@ -27,7 +27,7 @@ import pandas as pd
 # =============================================================================
 # 1. CONFIGURATION
 # =============================================================================
-API_KEY = "AIzaSyDGJgLItTQngvzT-M2Ie6pCIPWxUbZWl0g"
+API_KEY = "Your_API_Key_here"
 
 if not API_KEY:
     st.error("⚠️ No API key found!")
@@ -1731,4 +1731,5 @@ elif st.session_state.step == 'evaluate':
             if st.button("🏠 Home (Reset All)", use_container_width=True):
                 reset_application()
                 st.session_state.step = 'upload'
+
                 st.rerun()
